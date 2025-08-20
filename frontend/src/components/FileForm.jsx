@@ -1,7 +1,16 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function FileForm() {
     const [files, setFiles] = useState([])
+    const [requestId, setRequestId] = useState(0)
+
+    useEffect(() => {
+        console.log("atualizou")
+        const urlDownload = "http://localhost:8000/request/" + requestId;
+        console.log("URL:", urlDownload)
+
+        return () => {}
+    }, [requestId])
 
     const handleFileInputChange = (event) => {
         console.log(event.target.files)
@@ -25,7 +34,7 @@ export default function FileForm() {
 
             if (response.ok) {
                 console.log("File upload successfully")
-                console.log(await response.json())
+                setRequestId((await response.json()).request_id)
             } else {
                 console.log("Failed to upload file")
             }

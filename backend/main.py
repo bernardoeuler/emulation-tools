@@ -11,34 +11,31 @@ UPLOAD_DIR = str("/home/bernardo/Projects/learn/react-fastapi/user-uploads/")
 DOWNLOAD_DIR = str("/home/bernardo/Projects/learn/react-fastapi/user-downloads/")
 ROMS_DIR = DOWNLOAD_DIR + "roms/"
 
-database = {
-    "avaliable_downloads": [],
-    "pending_downloads": [],
-    "requests": [],
-}
+requests = {}
 
 def generate_request_id():
-    id = random.randint(10000000,99999999)
+    request_id = random.randint(10000000,99999999)
 
-    while id in database["requests"]:
-        id = random.randint(10000000,99999999)
+    while request_id in requests.keys():
+        request_id = random.randint(10000000,99999999)
 
-    database["requests"].append(id)
+    requests[request_id] = {"status": "pending"}
 
-    return str(id)
+    return request_id
 
-def generate_download_key():
+def generate_download_key(request_id: int):
     key = random.randint(10000000,99999999)
 
-    while key in database["avaliable_downloads"]:
+    while key in [req["download_key"] for req in requests.values() if "download_key" in req]:
         key = random.randint(10000000,99999999)
 
-    database["pending_downloads"].append(key)
+    requests[request_id]["download_key"] = key
 
     return str(key)
 
-async def convert_file(file_uploads: list[UploadFile], request_id: str, download_key: str):
-    save_dir = UPLOAD_DIR + request_id + "/"
+async def convert_file(file_uploads: list[UploadFile], request_id: int):
+    save_dir = UPLOAD_DIR + str(request_id) + "/"
+    download_key = generate_download_key(request_id)
     download_folder = ROMS_DIR + download_key
 
     subprocess.run(["mkdir", save_dir])
@@ -62,7 +59,8 @@ async def convert_file(file_uploads: list[UploadFile], request_id: str, download
     if os.path.exists(multi_disc_games_folder) and os.path.isdir(multi_disc_games_folder):
         subprocess.run(["zip", os.path.join(download_folder, download_key + ".zip"), *download_files], cwd=download_folder)
 
-    m3u_file = [f for f in Path(download_folder).iterdir() if f.is_file() and f.suffix == ".m3u"][0]
+    m3u_files = [f for f in Path(download_folder).iterdir() if f.is_file() and f.suffix == ".m3u"]
+    m3u_file = "" if len(m3u_files) == 0 else m3u_files[0]
 
     subprocess.run(["rm", "-rf", m3u_file, multi_disc_games_folder])
 
@@ -71,7 +69,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    # allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -79,13 +77,19 @@ app.add_middleware(
 @app.post("/uploadfile/")
 async def create_upload_file(file_uploads: list[UploadFile]):
     request_id = generate_request_id()
-    download_key = generate_download_key()
 
     os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    await convert_file(file_uploads, request_id, download_key)
+    await convert_file(file_uploads, request_id)
 
     return {"request_id": request_id}
+
+@app.get("/request/{request_id}")
+async def get_download_key(request_id: int):
+    print(requests)
+    if not requests or requests[request_id]["download_key"] is None:
+        return {"error": "Download key not ready yet"}
+    return requests[request_id]["download_key"]
 
 @app.get("/download/{download_key}")
 async def download_file(download_key: str, file: str | None = None):
