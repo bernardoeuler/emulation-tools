@@ -1,0 +1,151 @@
+#!/bin/bash
+
+show_help() {
+    program_name=$0
+    echo "Usage: $program_name source_directory destination_directory"
+}
+
+create_chd() {
+    cue_file=$1
+    chd_file=$2
+    echo "Compressing ${cue_file##*/}"
+    chdman createcd -i "$cue_file" -o "$chd_file"
+    echo "File $chd_file created succesfully"
+}
+
+source_directory=$1
+dest_directory=$2
+quiet_argument=$3
+multi_disc_games_dir=".multi-disc-games"
+temp_directory=$dest_directory/.tmp
+
+if [[ -z $source_directory || -z $dest_directory ]]; then
+    echo "Error: provide the source and the destination directories"
+    show_help
+    exit 1
+fi
+
+if [[ ! -d $source_directory ]]; then
+    echo "Directory does not exist"
+    exit 1
+fi
+
+if [[ -d $dest_directory && ! -z $quiet_argument ]]; then
+    echo "Destination directory alredy exists."
+    echo "The directory can be used safely. All the files inside it will remains and games that alredy exist in the destination folder won't be added."
+    echo ""
+
+    while true; do
+        read -p "Do you want to use it to store the roms? [Y/N] " yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) exit;;
+        esac
+    done
+
+    echo ""
+else
+    mkdir $dest_directory
+fi
+
+if [[ -d $temp_directory && ! -z $quiet_argument ]]; then
+    echo "Temporary directory alredy exists. If you want to use it, all the contents will be deleted."
+    echo ""
+
+    while true; do
+        read -p "Do you want to use it to store the files temporarily? [Y/N] " yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) exit;;
+        esac
+    done
+
+    rm -rf $temp_directory
+    mkdir $temp_directory
+    echo ""
+else
+    mkdir $temp_directory
+fi
+
+for item in $source_directory/*; do
+    if [[ -f $item && ($item == *.7z || $item == *.zip) ]]; then
+        file=$item
+        game_name="${file%.*}"
+        game_name="$(basename "$game_name")"
+
+        if [[ -f $dest_directory/$game_name.chd || -f $dest_directory/$game_name.m3u ]]; then
+            echo "${game_name#./} alredy exists in destination directory. Skipping..."
+            continue
+        fi
+
+        if [[ ! -d $game_name ]]; then
+            if [[ $file == *.7z ]]; then
+                7za x "$file" "-o$temp_directory/$game_name"
+            elif [[ $file == *.zip ]]; then
+                unzip "$file" -d "$temp_directory/$game_name"
+            fi
+        fi
+
+        if [[ -d $temp_directory/$game_name && $(ls "$temp_directory/$game_name" | grep -E "\(Disc\s[0-9]+\)") ]]; then
+            rom_dest="$dest_directory/$multi_disc_games_dir"
+            game_name_without_disc="$(echo "$game_name" | sed -e 's/\s(Disc\s[0-9]*).*//g')"
+            touch "$dest_directory/$game_name_without_disc.m3u"
+            is_multi_disc=true
+            [[ ! -d $dest_directory/$multi_disc_games_dir ]] && mkdir $dest_directory/$multi_disc_games_dir
+        else
+            rom_dest="$dest_directory"
+            is_multi_disc=false
+        fi
+
+        cue_files=$(find "$temp_directory/$game_name" -iname "*.cue" 2> /dev/null)
+        iso_files=$(find "$temp_directory/$game_name" -iname "*.iso" 2> /dev/null)
+
+        if [[ -n $cue_files ]]; then
+            while read cue_file; do
+                disc="${cue_file%.cue}.chd"
+                disc=${disc##*/}
+
+                if [[ -f $rom_dest/$disc ]]; then
+                    echo "${disc%.chd} alredy exists in destination directory. Skipping..."
+                    continue
+                fi
+
+                create_chd "$cue_file" "$rom_dest/$disc"
+                touch "$rom_dest/$disc"
+
+                if $is_multi_disc; then
+                    printf "%s\n" "$multi_disc_games_dir/$disc" >> "$dest_directory/$game_name_without_disc.m3u"
+                fi
+            done <<< $cue_files
+        elif [[ -n $iso_files ]]; then
+            while read iso_file; do
+                disc="${iso_file%.iso}.chd"
+                disc=${disc##*/}
+
+                if [[ -f $rom_dest/$disc ]]; then
+                    echo "${disc%.chd} alredy exists in destination directory. Skipping..."
+                    continue
+                fi
+
+                create_chd "$iso_file" "$rom_dest/$disc"
+                touch "$rom_dest/$disc"
+
+                if $is_multi_disc; then
+                    printf "%s\n" "$multi_disc_games_dir/$disc" >> "$dest_directory/$game_name_without_disc.m3u"
+                fi
+            done <<< $iso_files
+        else
+            continue
+        fi
+
+        echo "Removing $temp_directory/$game_name"
+        rm -rf "$temp_directory/$game_name"
+    fi
+done
+
+rm -rf $temp_directory
+
+echo ""
+echo "Finished. Your games were succesfully placed in $dest_directory"
