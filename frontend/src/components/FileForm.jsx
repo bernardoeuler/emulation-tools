@@ -6,7 +6,7 @@ export default function FileForm() {
 
     useEffect(() => {
         console.log("atualizou")
-        const urlDownload = "http://localhost:8000/request/" + requestId;
+        const urlDownload = "http://localhost:8000/status/" + requestId;
         console.log("URL:", urlDownload)
 
         return () => {}
@@ -26,7 +26,7 @@ export default function FileForm() {
         })
 
         try {
-            const endpoint = "http://localhost:8000/uploadfile/"
+            const endpoint = "http://localhost:8000/upload/"
             const response = await fetch(endpoint, {
                 method: "POST",
                 body: formData

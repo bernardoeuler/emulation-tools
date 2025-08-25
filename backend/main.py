@@ -1,11 +1,11 @@
 import os
-import subprocess
 import random
-from pathlib import Path
 
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+
+import tasks
 
 UPLOAD_DIR = str("/home/bernardo/Projects/learn/react-fastapi/user-uploads/")
 DOWNLOAD_DIR = str("/home/bernardo/Projects/learn/react-fastapi/user-downloads/")
@@ -33,63 +33,52 @@ def generate_download_key(request_id: int):
 
     return str(key)
 
-async def convert_file(file_uploads: list[UploadFile], request_id: int):
-    save_dir = UPLOAD_DIR + str(request_id) + "/"
-    download_key = generate_download_key(request_id)
-    download_folder = ROMS_DIR + download_key
-
-    subprocess.run(["mkdir", save_dir])
-
-    for file_upload in file_uploads:
-        data = await file_upload.read()
-        if file_upload.filename:
-            save_path = save_dir + file_upload.filename
-
-            with open(save_path, "wb") as file:
-                file.write(data)
-
-    os.makedirs(ROMS_DIR, exist_ok=True)
-    subprocess.run(["mkdir", download_folder])
-    subprocess.run(["./bin/create-chd-from-archives", save_dir, download_folder])
-    subprocess.run(["rm", "-rf", save_dir])
-
-    multi_disc_games_folder = os.path.join(download_folder, ".multi-disc-games")
-    download_files = [f.relative_to(download_folder) for f in Path(download_folder).rglob("*") if f.is_file()]
-
-    if os.path.exists(multi_disc_games_folder) and os.path.isdir(multi_disc_games_folder):
-        subprocess.run(["zip", os.path.join(download_folder, download_key + ".zip"), *download_files], cwd=download_folder)
-
-    m3u_files = [f for f in Path(download_folder).iterdir() if f.is_file() and f.suffix == ".m3u"]
-    m3u_file = "" if len(m3u_files) == 0 else m3u_files[0]
-
-    subprocess.run(["rm", "-rf", m3u_file, multi_disc_games_folder])
+def update_requests(request_id: int, new_status: str):
+    requests[request_id]["status"] = new_status
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    # allow_credentials=True,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.post("/uploadfile/")
-async def create_upload_file(file_uploads: list[UploadFile]):
+@app.post("/upload/")
+async def upload(file_uploads: list[UploadFile]):
     request_id = generate_request_id()
+    download_key = generate_download_key(request_id)
+    save_folder = UPLOAD_DIR + str(request_id) + "/"
+    download_folder = ROMS_DIR + download_key
 
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    os.makedirs(save_folder, exist_ok=True)
+    os.makedirs(ROMS_DIR, exist_ok=True)
 
-    await convert_file(file_uploads, request_id)
+    for file_upload in file_uploads:
+        data = await file_upload.read()
+        if file_upload.filename:
+            save_path = save_folder + file_upload.filename
+
+            with open(save_path, "wb") as file:
+                file.write(data)
+
+    tasks.convert_to_chd.delay(save_folder, download_folder)
 
     return {"request_id": request_id}
 
-@app.get("/request/{request_id}")
+@app.get("/status/{request_id}")
 async def get_download_key(request_id: int):
     print(requests)
+
+    if not requests or requests[request_id] is None:
+        return {"error": "Invalid request"}
+
     if not requests or requests[request_id]["download_key"] is None:
         return {"error": "Download key not ready yet"}
-    return requests[request_id]["download_key"]
+
+    return requests[request_id]
 
 @app.get("/download/{download_key}")
 async def download_file(download_key: str, file: str | None = None):
