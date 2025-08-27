@@ -1,16 +1,9 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 export default function FileForm() {
     const [files, setFiles] = useState([])
-    const [requestId, setRequestId] = useState(0)
 
-    useEffect(() => {
-        console.log("atualizou")
-        const urlDownload = "http://localhost:8000/status/" + requestId;
-        console.log("URL:", urlDownload)
-
-        return () => {}
-    }, [requestId])
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
 
     const handleFileInputChange = (event) => {
         console.log(event.target.files)
@@ -26,7 +19,7 @@ export default function FileForm() {
         })
 
         try {
-            const endpoint = "http://localhost:8000/upload/"
+            const endpoint = `${API_BASE_URL}/upload/`
             const response = await fetch(endpoint, {
                 method: "POST",
                 body: formData
@@ -34,7 +27,6 @@ export default function FileForm() {
 
             if (response.ok) {
                 console.log("File upload successfully")
-                setRequestId((await response.json()).request_id)
             } else {
                 console.log("Failed to upload file")
             }
