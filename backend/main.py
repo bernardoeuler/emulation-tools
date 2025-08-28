@@ -1,5 +1,6 @@
 import os
 import random
+import shutil
 
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,12 +58,11 @@ async def upload(file_uploads: list[UploadFile]):
     os.makedirs(ROMS_DIR, exist_ok=True)
 
     for file_upload in file_uploads:
-        data = await file_upload.read()
         if file_upload.filename:
             save_path = save_folder + file_upload.filename
 
-            with open(save_path, "wb") as file:
-                file.write(data)
+            with open(save_path, "wb") as save_file:
+                shutil.copyfileobj(file_upload.file, save_file)
 
     tasks.convert_to_chd.delay(save_folder, download_folder)
 
