@@ -1,6 +1,7 @@
 import os
-import random
+from pathlib import Path
 import shutil
+import uuid
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile
@@ -11,33 +12,35 @@ import tasks
 
 load_dotenv()
 
-UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
-DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER")
+current_folder = Path(__file__).resolve().parent
+
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER") or current_folder.as_posix() + "/user-uploads"
+DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or current_folder.as_posix() + "/user-downloads"
 ROMS_FOLDER = DOWNLOAD_FOLDER + "roms/"
 
 requests = {}
 
 def generate_request_id():
-    request_id = random.randint(10000000,99999999)
+    request_id = uuid.uuid4().hex
 
     while request_id in requests.keys():
-        request_id = random.randint(10000000,99999999)
+        request_id = uuid.uuid4().hex
 
     requests[request_id] = {"status": "pending"}
 
     return request_id
 
-def generate_download_key(request_id: int):
-    key = random.randint(10000000,99999999)
+def generate_download_key(request_id: str):
+    key = uuid.uuid4().hex
 
     while key in [req["download_key"] for req in requests.values() if "download_key" in req]:
-        key = random.randint(10000000,99999999)
+        key = uuid.uuid4().hex
 
     requests[request_id]["download_key"] = key
 
     return str(key)
 
-def update_requests(request_id: int, new_status: str):
+def update_requests(request_id: str, new_status: str):
     requests[request_id]["status"] = new_status
 
 app = FastAPI()
@@ -72,7 +75,7 @@ async def upload(file_uploads: list[UploadFile]):
     return {"request_id": request_id}
 
 @app.get("/status/{request_id}")
-async def get_download_key(request_id: int):
+async def get_download_key(request_id: str):
     print(requests)
 
     if not requests or requests[request_id] is None:
