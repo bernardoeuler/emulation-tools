@@ -14,8 +14,8 @@ load_dotenv()
 
 current_folder = Path(__file__).resolve().parent
 
-UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER") or current_folder.as_posix() + "/user-uploads"
-DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or current_folder.as_posix() + "/user-downloads"
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER") or current_folder.as_posix() + "/user-uploads/"
+DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or current_folder.as_posix() + "/user-downloads/"
 ROMS_FOLDER = DOWNLOAD_FOLDER + "roms/"
 
 requests = {}
