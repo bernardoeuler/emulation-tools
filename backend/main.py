@@ -2,15 +2,18 @@ import os
 import random
 import shutil
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 import tasks
 
-UPLOAD_DIR = str("/home/bernardo/Projects/learn/react-fastapi/user-uploads/")
-DOWNLOAD_DIR = str("/home/bernardo/Projects/learn/react-fastapi/user-downloads/")
-ROMS_DIR = DOWNLOAD_DIR + "roms/"
+load_dotenv()
+
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
+DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER")
+ROMS_FOLDER = DOWNLOAD_FOLDER + "roms/"
 
 requests = {}
 
@@ -51,11 +54,11 @@ app.add_middleware(
 async def upload(file_uploads: list[UploadFile]):
     request_id = generate_request_id()
     download_key = generate_download_key(request_id)
-    save_folder = UPLOAD_DIR + str(request_id) + "/"
-    download_folder = ROMS_DIR + download_key
+    save_folder = UPLOAD_FOLDER + str(request_id) + "/"
+    download_folder = ROMS_FOLDER + download_key
 
     os.makedirs(save_folder, exist_ok=True)
-    os.makedirs(ROMS_DIR, exist_ok=True)
+    os.makedirs(ROMS_FOLDER, exist_ok=True)
 
     for file_upload in file_uploads:
         if file_upload.filename:
@@ -82,7 +85,7 @@ async def get_download_key(request_id: int):
 
 @app.get("/download/{download_key}")
 async def download_file(download_key: str, file: str | None = None):
-    download_path = ROMS_DIR + download_key + "/"
+    download_path = ROMS_FOLDER + download_key + "/"
     games = [f for f in os.listdir(download_path) if os.path.isfile(os.path.join(download_path, f))]
     if file:
         return FileResponse(download_path + file, filename=file)
