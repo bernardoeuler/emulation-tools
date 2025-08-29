@@ -1,5 +1,5 @@
-import os
 from pathlib import Path
+import os
 import shutil
 import uuid
 
@@ -8,6 +8,8 @@ from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from database import Base, engine, SessionLocal
+from models import Download, Request
 import tasks
 
 load_dotenv()
