@@ -1,7 +1,11 @@
 import { useState } from "react"
+import DownloadScreen from "./DownloadScreen"
 
 export default function FileForm() {
     const [files, setFiles] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [filesUploaded, setFilesUploaded] = useState(false)
 
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
 
@@ -14,11 +18,14 @@ export default function FileForm() {
         event.preventDefault()
 
         const formData = new FormData()
+
         files.forEach(file => {
             formData.append("file_uploads", file)
         })
 
         try {
+            setLoading(true)
+
             const endpoint = `${API_BASE_URL}/upload/`
             const response = await fetch(endpoint, {
                 method: "POST",
@@ -26,14 +33,23 @@ export default function FileForm() {
             })
 
             if (response.ok) {
+                setFilesUploaded(true)
                 console.log("File upload successfully")
             } else {
+                setError("Error: " + response.statusText)
                 console.log("Failed to upload file")
             }
         } catch (error) {
+            setError(error)
             console.error(error)
+        } finally {
+            setLoading(false)
         }
     }
+
+    if (loading) return <div>Loading response...</div>
+
+    if (filesUploaded) return <DownloadScreen />
 
     return (
         <div style={{ height: "100vh", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -45,6 +61,8 @@ export default function FileForm() {
                 </div>
                 <button type="submit">Upload</button>
             </form>
+
+            {error && <div>Error: {error}</div>}
         </div>
     )
 }
