@@ -1,13 +1,20 @@
 import os
 import subprocess
+import uuid
 from pathlib import Path
+from datetime import datetime, timezone
 
 from celery import Celery
+
+from database import SessionLocal
+from models import Download, Request
 
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
 
 @app.task
-def convert_to_chd(save_folder: int, download_folder: str):
+def convert_to_chd(save_folder: str, download_folder: str, request_id: str, download_id: str):
+    session = SessionLocal()
+
     os.makedirs(download_folder, exist_ok=True)
     subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder])
     subprocess.run(["rm", "-rf", save_folder])
@@ -22,3 +29,7 @@ def convert_to_chd(save_folder: int, download_folder: str):
     m3u_file = "" if len(m3u_files) == 0 else m3u_files[0]
 
     subprocess.run(["rm", "-rf", m3u_file, multi_disc_games_folder])
+
+    session.add(Download(public_id=download_id, request_id=request_id, status="pending", created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
+    session.commit()
+    session.close()
