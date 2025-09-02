@@ -14,7 +14,7 @@ export function MobileMenu({ className, menuOptions }: { className: string, menu
         <div className={`${className}`}>
             <Sheet>
                 <SheetTrigger asChild>
-                    <Menu>Open</Menu>
+                    <Menu size={24} strokeWidth={3}>Open</Menu>
                 </SheetTrigger>
                 <SheetContent className="flex flex-col text-center px-8 py-16">
                     {Array.from(menuOptions).map((option, i) => {

@@ -21,7 +21,7 @@ export function NavigationBar() {
     ]
 
     return (
-        <header className="flex items-center justify-between py-4 px-4  bg-gray-200">
+        <header className="w-full fixed top-0 flex items-center justify-between p-4 bg-white sm:px-8 md:px-10 lg:px-16">
             <div>
                 <a href="/" className="flex items-center">
                     {/* <img src="src/assets/logo.png" alt="Logo" className="h-10 w-auto" /> */}
@@ -34,7 +34,7 @@ export function NavigationBar() {
                     {Array.from(navOptions).map((option, i) => {
                         return (
                             <NavigationMenuItem key={i}>
-                                <NavigationMenuLink className="text-base" href={option.href}>{option.item}</NavigationMenuLink>
+                                <NavigationMenuLink className="text-base py-0" href={option.href}>{option.item}</NavigationMenuLink>
                             </NavigationMenuItem>
                         )
                     })}

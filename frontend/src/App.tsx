@@ -6,7 +6,6 @@ function App() {
         <div>
             <NavigationBar />
             <Hero />
-
         </div>
     )
 }
