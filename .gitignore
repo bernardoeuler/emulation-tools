@@ -15,7 +15,7 @@ __pycache__/
 # ---------------------------------
 build/
 coverage/
-dist/ # Added, common for backends with TypeScript/compilers
+dist/
 
 # Logs and Debug Files
 # ---------------------------------
