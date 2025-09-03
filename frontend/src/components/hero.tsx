@@ -12,7 +12,7 @@ function Hero() {
                 </div>
             </div>
             <div className="basis-100 grow">
-                <img className="w-full" src="src/assets/images/hero-image.svg" alt="Game image" />
+                <img className="w-full" src="/assets/images/hero-image.svg" alt="Game image" />
             </div>
         </div>
 
