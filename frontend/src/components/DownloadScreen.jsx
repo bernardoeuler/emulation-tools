@@ -2,7 +2,6 @@ import { useState } from "react"
 
 export default function DownloadScreen({ requestId }) {
     const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState(null)
     const [downloadId, setDownloadId] = useState("")
 
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
@@ -14,9 +13,9 @@ export default function DownloadScreen({ requestId }) {
             .then(res => res.json())
             .then(json => {
                 console.log(json)
-                
+
                 if (json.status !== "pending") {
-                    if (json.status == "ready") {
+                    if (json.status === "ready") {
                         console.log("Download fetched:", json["download_id"] || "...")
                         setDownloadId(json["download_id"])
                         setIsLoading(false)
