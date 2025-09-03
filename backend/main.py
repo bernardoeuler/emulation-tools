@@ -68,12 +68,16 @@ async def get_download_id(request_id: str):
     if download is None:
         return {"error": "Download key not ready yet"}
 
-    return {"download_id": download.public_id}
+    return {"download_id": download.public_id, "status": download.status}
 
 @app.get("/download/{download_id}")
 async def download_file(download_id: str, file: str | None = None):
     download_path = ROMS_FOLDER + download_id + "/"
-    games = [f for f in os.listdir(download_path) if os.path.isfile(os.path.join(download_path, f))]
-    if file:
-        return FileResponse(download_path + file, filename=file)
-    return FileResponse(download_path + games[0], filename=games[0])
+    try:
+        games = [f for f in os.listdir(download_path) if os.path.isfile(os.path.join(download_path, f))]
+    except Exception:
+        return {"error": "Invalid download id"}
+    else:
+        if file:
+            return FileResponse(download_path + file, filename=file)
+        return FileResponse(download_path + games[0], filename=games[0])
