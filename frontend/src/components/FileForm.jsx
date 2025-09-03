@@ -6,6 +6,7 @@ export default function FileForm() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const [filesUploaded, setFilesUploaded] = useState(false)
+    const [requestId, setRequestId] = useState("")
 
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
 
@@ -33,6 +34,8 @@ export default function FileForm() {
             })
 
             if (response.ok) {
+                const json = await response.json()
+                setRequestId(json["request_id"])
                 setFilesUploaded(true)
                 console.log("File upload successfully")
             } else {
@@ -49,7 +52,7 @@ export default function FileForm() {
 
     if (loading) return <div>Loading response...</div>
 
-    if (filesUploaded) return <DownloadScreen />
+    if (filesUploaded && requestId !== "") return <DownloadScreen requestId={requestId} />
 
     return (
         <div style={{ height: "100vh", display: "flex", flexDirection: "column", alignItems: "center" }}>
