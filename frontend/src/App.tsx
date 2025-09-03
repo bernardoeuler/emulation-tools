@@ -3,7 +3,7 @@ import { NavigationBar } from "@/components/navigation-bar"
 
 function App() {
     return (
-        <div>
+        <div className="min-h-dvh bg-background">
             <NavigationBar />
             <Hero />
         </div>

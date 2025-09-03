@@ -21,7 +21,7 @@ export function NavigationBar() {
     ]
 
     return (
-        <header className="w-full fixed top-0 flex items-center justify-between p-4 bg-white sm:px-8 md:px-10 lg:px-16">
+        <header className="w-full fixed top-0 flex items-center justify-between p-4 bg-background text-foreground sm:px-8 md:px-10 lg:px-16">
             <div>
                 <a href="/" className="flex items-center">
                     {/* <img src="src/assets/logo.png" alt="Logo" className="h-10 w-auto" /> */}
