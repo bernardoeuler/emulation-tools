@@ -2,7 +2,6 @@ import os
 import shutil
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile
@@ -15,10 +14,12 @@ import tasks
 
 load_dotenv()
 
-current_folder = Path(__file__).resolve().parent
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
+DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER")
 
-UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER") or current_folder.as_posix() + "/user-uploads/"
-DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or current_folder.as_posix() + "/user-downloads/"
+if UPLOAD_FOLDER == None or DOWNLOAD_FOLDER == None:
+    raise Exception("The environment variables UPLOAD_FOLDER and DOWNLOAD_FOLDER must be specified")
+
 ROMS_FOLDER = DOWNLOAD_FOLDER + "roms/"
 
 app = FastAPI()
@@ -35,7 +36,6 @@ app.add_middleware(
 @app.post("/upload/")
 async def upload(file_uploads: list[UploadFile]):
     request_id = uuid.uuid4().hex
-    download_id = uuid.uuid4().hex
     save_folder = UPLOAD_FOLDER + str(request_id) + "/"
     download_folder = ROMS_FOLDER + download_id
 
