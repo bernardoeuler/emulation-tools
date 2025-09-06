@@ -10,14 +10,15 @@ from fastapi.responses import FileResponse
 
 from database import SessionLocal
 from models import Download, Request
+from utils import generate_public_id
 import tasks
 
 load_dotenv()
 
-UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
-DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER")
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER") or ""
+DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or ""
 
-if UPLOAD_FOLDER == None or DOWNLOAD_FOLDER == None:
+if UPLOAD_FOLDER == "" or DOWNLOAD_FOLDER == "":
     raise Exception("The environment variables UPLOAD_FOLDER and DOWNLOAD_FOLDER must be specified")
 
 ROMS_FOLDER = DOWNLOAD_FOLDER + "roms/"
