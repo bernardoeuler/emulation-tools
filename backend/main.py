@@ -1,6 +1,5 @@
 import os
 import shutil
-import uuid
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
@@ -36,7 +35,8 @@ app.add_middleware(
 
 @app.post("/upload/")
 async def upload(file_uploads: list[UploadFile]):
-    request_id = uuid.uuid4().hex
+    request_id = generate_public_id()
+    download_id = generate_public_id()
     save_folder = UPLOAD_FOLDER + str(request_id) + "/"
     download_folder = ROMS_FOLDER + download_id
 
