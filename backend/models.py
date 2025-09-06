@@ -1,48 +1,40 @@
-from sqlalchemy import Column, Integer, String, CheckConstraint, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, CheckConstraint, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 
 from database import Base
 
-class BaseModel(Base):
-    __abstract__ = True
-    __allow_unmapped__ = True
+class Download(Base):
+    __tablename__ = "downloads"
 
     id = Column(Integer, primary_key=True)
-
-class Download(BaseModel):
-    __tablename__ = "downloads"
-    __table_args__ = (
-        CheckConstraint("status IN ('pending','ready','expired','failed')", name="download_status_check"),
-    )
-
     public_id = Column(String(32), nullable=False)
     request_id = Column(Integer, ForeignKey("requests.id"), nullable=False)
-    status = Column(String, nullable=False)
-    file_uri = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    expires_at = Column(DateTime(timezone=True))
+    file_uri = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
 
     request = relationship("Request", back_populates="downloads")
 
-class Request(BaseModel):
+class Request(Base):
     __tablename__ = "requests"
     __table_args__ = (
-        CheckConstraint("status IN ('pending','in_progress','done','failed')", name="status_check"),
+        CheckConstraint("status IN ('pending','processing','done','failed')", name="status_check"),
     )
 
+    id = Column(Integer, primary_key=True)
     public_id = Column(String(32), nullable=False)
     type_id = Column(Integer, ForeignKey("request_types.id"), nullable=False)
     status = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False)
+    updated_at = Column(DateTime(timezone=True), nullable=False)
 
     type = relationship("RequestType", back_populates="requests")
     downloads = relationship("Download", back_populates="request")
 
-class RequestType(BaseModel):
+class RequestType(Base):
     __tablename__ = "request_types"
 
+    id = Column(Integer, primary_key=True)
     code = Column(String, unique=True, nullable=False)
     description = Column(String)
 
