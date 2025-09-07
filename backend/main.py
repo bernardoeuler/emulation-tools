@@ -50,7 +50,9 @@ async def upload(file_uploads: list[UploadFile]):
     os.makedirs(ROMS_FOLDER, exist_ok=True)
     tasks.convert_to_chd.delay(save_folder, ROMS_FOLDER, request_id)
 
-    session.add(Request(public_id=request_id, type_id=1, status="pending", created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)))
+    datetime_now = datetime.now(timezone.utc)
+
+    session.add(Request(public_id=request_id, type_id=1, status="pending", created_at=datetime_now, updated_at=datetime_now))
     session.commit()
     session.close()
 
