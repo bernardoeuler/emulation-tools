@@ -35,10 +35,6 @@ def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
 
     subprocess.run(["rm", "-rf", m3u_file, multi_disc_games_folder])
 
-    download = session.query(Download).filter_by(public_id=download_id).one_or_none()
-
-    if download:
-        download.status = "ready"
-        print(download.id)
-        session.commit()
-        session.close()
+    request.status = "done"
+    session.commit()
+    session.close()
