@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from celery import Celery
 
 from database import SessionLocal
-from models import Download
+from models import Download, Request
 from utils import generate_public_id
 
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
@@ -17,7 +17,16 @@ def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
     download_folder = os.path.join(roms_folder, download_id)
     session = SessionLocal()
 
-    session.add(Download(public_id=download_id, request_id=request_id, file_uri=download_folder, created_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
+    print(f"{request_id=}, {download_id=}")
+
+    request = session.query(Request).filter_by(public_id=request_id).one_or_none()
+
+    if request == None:
+        raise Exception("Request not found")
+
+    request.status = "processing"
+
+    session.add(Download(public_id=download_id, request_id=request.id, file_uri=download_folder, created_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
     session.commit()
 
     os.makedirs(download_folder, exist_ok=True)
