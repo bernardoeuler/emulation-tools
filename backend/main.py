@@ -38,6 +38,16 @@ async def upload(file_uploads: list[UploadFile]):
     request_id = generate_public_id()
     save_folder = os.path.join(UPLOAD_FOLDER, str(request_id))
 
+    try:
+        datetime_now = datetime.now(timezone.utc)
+        session.add(Request(public_id=request_id, type_id=1, status="pending", created_at=datetime_now, updated_at=datetime_now))
+        session.commit()
+    except Exception as e:
+        print("Error:", e)
+        return JSONResponse(status_code=500, content={"error": "Failed to process request"})
+    finally:
+        session.close()
+
     os.makedirs(save_folder, exist_ok=True)
 
     for file_upload in file_uploads:
