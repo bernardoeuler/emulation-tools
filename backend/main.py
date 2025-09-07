@@ -64,12 +64,12 @@ async def get_download_id(request_id: str):
     download = session.query(Download).filter_by(request_id=request_id).one_or_none()
 
     if request is None:
-        return {"error": "Invalid request"}
+        return {"error": "Invalid request", "status": "error"}
 
     if download is None:
-        return {"error": "Download key not ready yet"}
+        return {"error": "Download key not ready yet", "status": str(request.status)}
 
-    return {"download_id": download.public_id, "status": download.status}
+    return {"download_id": download.public_id, "status": request.status}
 
 @app.get("/download/{download_id}")
 async def download_file(download_id: str, file: str | None = None):

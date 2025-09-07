@@ -14,7 +14,7 @@ app = Celery("tasks", broker="pyamqp://guest@localhost//")
 def convert_to_chd(save_folder: str, download_folder: str, request_id: str, download_id: str):
     session = SessionLocal()
 
-    session.add(Download(public_id=download_id, request_id=request_id, status="pending", created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
+    session.add(Download(public_id=download_id, request_id=request_id, file_uri=download_folder, created_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
     session.commit()
 
     os.makedirs(download_folder, exist_ok=True)
