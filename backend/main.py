@@ -49,18 +49,8 @@ async def upload(file_uploads: list[UploadFile]):
 
     os.makedirs(ROMS_FOLDER, exist_ok=True)
 
-    try:
-        tasks.convert_to_chd.delay(save_folder, ROMS_FOLDER, request_id)
-        datetime_now = datetime.now(timezone.utc)
-
-        session.add(Request(public_id=request_id, type_id=1, status="pending", created_at=datetime_now, updated_at=datetime_now))
-        session.commit()
-
-        return {"request_id": request_id}
-    except Exception:
-        return JSONResponse(status_code=500, content={"error": "Conversion has failed"})
-    finally:
-        session.close()
+    tasks.convert_to_chd.delay(save_folder, ROMS_FOLDER, request_id)
+    return {"request_id": request_id}
 
 @app.get("/status/{request_id}")
 async def get_download_id(request_id: str):
