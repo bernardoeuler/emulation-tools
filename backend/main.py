@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from database import SessionLocal
 from models import Download, Request
@@ -48,15 +48,19 @@ async def upload(file_uploads: list[UploadFile]):
                 shutil.copyfileobj(file_upload.file, save_file)
 
     os.makedirs(ROMS_FOLDER, exist_ok=True)
-    tasks.convert_to_chd.delay(save_folder, ROMS_FOLDER, request_id)
 
-    datetime_now = datetime.now(timezone.utc)
+    try:
+        tasks.convert_to_chd.delay(save_folder, ROMS_FOLDER, request_id)
+        datetime_now = datetime.now(timezone.utc)
 
-    session.add(Request(public_id=request_id, type_id=1, status="pending", created_at=datetime_now, updated_at=datetime_now))
-    session.commit()
-    session.close()
+        session.add(Request(public_id=request_id, type_id=1, status="pending", created_at=datetime_now, updated_at=datetime_now))
+        session.commit()
 
-    return {"request_id": request_id}
+        return {"request_id": request_id}
+    except Exception:
+        return JSONResponse(status_code=500, content={"error": "Conversion has failed"})
+    finally:
+        session.close()
 
 @app.get("/status/{request_id}")
 async def get_download_id(request_id: str):
