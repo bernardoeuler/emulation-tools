@@ -28,8 +28,19 @@ def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
     session.commit()
 
     os.makedirs(download_folder, exist_ok=True)
-    subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder])
+    if subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder]).returncode != 0:
+        request.status = "failed"
+        session.commit()
+        session.close()
+        raise Exception("Conversion has failed")
+
     subprocess.run(["rm", "-rf", save_folder])
+
+    if not os.listdir(download_folder):
+        request.status = "failed"
+        session.commit()
+        session.close()
+        raise Exception("Conversion failed due to invalid input")
 
     multi_disc_games_folder = os.path.join(download_folder, ".multi-disc-games")
     download_files = [f.relative_to(download_folder) for f in Path(download_folder).rglob("*") if f.is_file()]
