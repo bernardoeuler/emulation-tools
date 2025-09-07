@@ -30,7 +30,9 @@ if [[ ! -d $source_directory ]]; then
     exit 1
 fi
 
-if [[ -d $dest_directory && ! -z $quiet_argument ]]; then
+if [[ ! -d $dest_directory ]]; then
+    mkdir $dest_directory
+elif [[ ! -z $quiet_argument ]]; then
     echo "Destination directory alredy exists."
     echo "The directory can be used safely. All the files inside it will remains and games that alredy exist in the destination folder won't be added."
     echo ""
@@ -45,11 +47,11 @@ if [[ -d $dest_directory && ! -z $quiet_argument ]]; then
     done
 
     echo ""
-else
-    mkdir $dest_directory
 fi
 
-if [[ -d $temp_directory && ! -z $quiet_argument ]]; then
+if [[ ! -d $temp_directory ]]; then
+    mkdir $temp_directory
+elif [[ ! -z $quiet_argument ]]; then
     echo "Temporary directory alredy exists. If you want to use it, all the contents will be deleted."
     echo ""
 
@@ -65,8 +67,6 @@ if [[ -d $temp_directory && ! -z $quiet_argument ]]; then
     rm -rf $temp_directory
     mkdir $temp_directory
     echo ""
-else
-    mkdir $temp_directory
 fi
 
 for item in $source_directory/*; do
