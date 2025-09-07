@@ -20,7 +20,7 @@ DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or ""
 if UPLOAD_FOLDER == "" or DOWNLOAD_FOLDER == "":
     raise Exception("The environment variables UPLOAD_FOLDER and DOWNLOAD_FOLDER must be specified")
 
-ROMS_FOLDER = DOWNLOAD_FOLDER + "roms/"
+ROMS_FOLDER = os.path.join(DOWNLOAD_FOLDER, "roms")
 
 app = FastAPI()
 session = SessionLocal()
@@ -36,21 +36,19 @@ app.add_middleware(
 @app.post("/upload/")
 async def upload(file_uploads: list[UploadFile]):
     request_id = generate_public_id()
-    download_id = generate_public_id()
-    save_folder = UPLOAD_FOLDER + str(request_id) + "/"
-    download_folder = ROMS_FOLDER + download_id
+    save_folder = os.path.join(UPLOAD_FOLDER, str(request_id))
 
     os.makedirs(save_folder, exist_ok=True)
-    os.makedirs(ROMS_FOLDER, exist_ok=True)
 
     for file_upload in file_uploads:
         if file_upload.filename:
-            save_path = save_folder + file_upload.filename
+            save_path = os.path.join(save_folder, file_upload.filename)
 
             with open(save_path, "wb") as save_file:
                 shutil.copyfileobj(file_upload.file, save_file)
 
-    tasks.convert_to_chd.delay(save_folder, download_folder, request_id, download_id)
+    os.makedirs(ROMS_FOLDER, exist_ok=True)
+    tasks.convert_to_chd.delay(save_folder, ROMS_FOLDER, request_id)
 
     session.add(Request(public_id=request_id, type_id=1, status="pending", created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)))
     session.commit()

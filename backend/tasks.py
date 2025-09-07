@@ -7,11 +7,14 @@ from celery import Celery
 
 from database import SessionLocal
 from models import Download
+from utils import generate_public_id
 
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
 
 @app.task
-def convert_to_chd(save_folder: str, download_folder: str, request_id: str, download_id: str):
+def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
+    download_id = generate_public_id()
+    download_folder = os.path.join(roms_folder, download_id)
     session = SessionLocal()
 
     session.add(Download(public_id=download_id, request_id=request_id, file_uri=download_folder, created_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
