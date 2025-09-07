@@ -77,12 +77,13 @@ async def get_download_id(request_id: str):
 
 @app.get("/download/{download_id}")
 async def download_file(download_id: str, file: str | None = None):
-    download_path = ROMS_FOLDER + download_id + "/"
+    download_path = os.path.join(ROMS_FOLDER, download_id)
     try:
         games = [f for f in os.listdir(download_path) if os.path.isfile(os.path.join(download_path, f))]
-    except Exception:
+    except Exception as e:
+        print(e)
         return {"error": "Invalid download id"}
     else:
         if file:
-            return FileResponse(download_path + file, filename=file)
-        return FileResponse(download_path + games[0], filename=games[0])
+            return FileResponse(os.path.join(download_path, file), filename=file)
+        return FileResponse(os.path.join(download_path, games[0]), filename=games[0])
