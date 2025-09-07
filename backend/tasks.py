@@ -17,8 +17,6 @@ def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
     download_folder = os.path.join(roms_folder, download_id)
     session = SessionLocal()
 
-    print(f"{request_id=}, {download_id=}")
-
     request = session.query(Request).filter_by(public_id=request_id).one_or_none()
 
     if request == None:
