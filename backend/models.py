@@ -7,7 +7,7 @@ class Download(Base):
     __tablename__ = "downloads"
 
     id = Column(Integer, primary_key=True)
-    public_id = Column(String(32), nullable=False)
+    public_id = Column(String(32), nullable=False, unique=True)
     request_id = Column(Integer, ForeignKey("requests.id"), nullable=False)
     file_uri = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False)
@@ -22,7 +22,7 @@ class Request(Base):
     )
 
     id = Column(Integer, primary_key=True)
-    public_id = Column(String(32), nullable=False)
+    public_id = Column(String(32), nullable=False, unique=True)
     type_id = Column(Integer, ForeignKey("request_types.id"), nullable=False)
     status = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False)
