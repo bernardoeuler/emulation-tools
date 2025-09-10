@@ -6,30 +6,25 @@ export default function DownloadScreen({ requestId }) {
 
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
 
-    function pollData() {
-        const endpoint = `${API_BASE_URL}/status/${requestId}`
-
-        fetch(endpoint)
-            .then(res => res.json())
-            .then(json => {
-
-                if (json.status !== "pending" && json.status !== "processing") {
-                    if (json.status === "done") {
-                        setDownloadId(json["download_id"])
-                    }
-
-                    setIsLoading(false)
-                }
-            })
-            .catch(err => console.error("Polling error:", err))
-    }
-
     useEffect(() => {
         if (downloadId === "") {
-            const statusPolling = setInterval(pollData, 2000)
+            const statusPolling = setInterval(() => {
+                fetch(`${API_BASE_URL}/status/${requestId}`)
+                    .then(res => res.json())
+                    .then(json => {
+                        if (json.status !== "pending" && json.status !== "processing") {
+                            if (json.status === "done") {
+                                setDownloadId(json["download_id"])
+                            }
+                            setIsLoading(false)
+                        }
+                    })
+                    .catch(err => console.error("Polling error:", err))
+            }, 2000)
+
             return () => clearInterval(statusPolling)
         }
-    }, [downloadId])
+    }, [downloadId, requestId, API_BASE_URL])
 
     return (
         <div>
