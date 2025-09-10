@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function DownloadScreen({ requestId }) {
     const [isLoading, setIsLoading] = useState(true)
@@ -7,30 +7,29 @@ export default function DownloadScreen({ requestId }) {
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
 
     function pollData() {
-        console.log("Polling...")
         const endpoint = `${API_BASE_URL}/status/${requestId}`
+
         fetch(endpoint)
             .then(res => res.json())
             .then(json => {
-                console.log(json)
 
-                if (json.status !== "pending") {
-                    if (json.status === "ready") {
-                        console.log("Download fetched:", json["download_id"] || "...")
+                if (json.status !== "pending" && json.status !== "processing") {
+                    if (json.status === "done") {
                         setDownloadId(json["download_id"])
-                        setIsLoading(false)
                     }
 
                     setIsLoading(false)
-                    clearInterval(statusPolling)
-               }
+                }
             })
-            .catch(err => console.error("Polling error:", err));
+            .catch(err => console.error("Polling error:", err))
     }
 
-    const statusPolling = setInterval(pollData, 2000)
-
-    if (downloadId) console.log(downloadId)
+    useEffect(() => {
+        if (downloadId === "") {
+            const statusPolling = setInterval(pollData, 2000)
+            return () => clearInterval(statusPolling)
+        }
+    }, [downloadId])
 
     return (
         <div>
