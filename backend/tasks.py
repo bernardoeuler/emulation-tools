@@ -24,9 +24,6 @@ def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
 
     request.status = "processing"
 
-    session.add(Download(public_id=download_id, request_id=request.id, file_uri=download_folder, created_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
-    session.commit()
-
     os.makedirs(download_folder, exist_ok=True)
     if subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder]).returncode != 0:
         request.status = "failed"
@@ -53,6 +50,7 @@ def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
 
     subprocess.run(["rm", "-rf", m3u_file, multi_disc_games_folder])
 
+    session.add(Download(public_id=download_id, request_id=request.id, file_uri=download_folder, created_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
     request.status = "done"
     session.commit()
     session.close()

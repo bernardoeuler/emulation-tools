@@ -70,8 +70,8 @@ async def get_download_id(request_id: str):
     if request is None:
         return {"error": "Invalid request", "status": "error"}
 
-    if download is None:
-        return {"error": "Download key not ready yet", "status": str(request.status)}
+    if request.status != "done":
+        return {"status": request.status}
 
     return {"download_id": download.public_id, "status": request.status}
 
