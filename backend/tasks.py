@@ -23,8 +23,10 @@ def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
         raise Exception("Request not found")
 
     request.status = "processing"
+    session.commit()
 
     os.makedirs(download_folder, exist_ok=True)
+    
     if subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder]).returncode != 0:
         request.status = "failed"
         session.commit()
