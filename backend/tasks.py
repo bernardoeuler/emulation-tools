@@ -26,12 +26,14 @@ def convert_to_chd(save_folder: str, roms_folder: str, request_id: str):
     session.commit()
 
     os.makedirs(download_folder, exist_ok=True)
+
+    chd_conversion_process = subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder], capture_output=True, text=True)
     
-    if subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder]).returncode != 0:
+    if chd_conversion_process.returncode != 0:
         request.status = "failed"
         session.commit()
         session.close()
-        raise Exception("Conversion has failed")
+        raise Exception("Conversion has failed due to the following error: " + chd_conversion_process.stderr)
 
     subprocess.run(["rm", "-rf", save_folder])
 
