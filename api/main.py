@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from database.session import SessionLocal
-from database.models import Download, Request, RequestStatusEnum, RequestTypeEnum
+from database.models import Download, Request, RequestStatusEnum, RequestTypeEnum, DownloadStatusEnum
 import app.utils.tasks as tasks
 
 load_dotenv()
@@ -72,11 +72,17 @@ async def get_download_id(request_id: str):
 
 @app.get("/download/{download_id}")
 async def download_file(download_id: str, file: str | None = None):
+    download = session.query(Download).filter_by(public_id=download_id).one_or_none()
+
+    if download is None or download.status != DownloadStatusEnum.READY:
+        return {"error": "Download not ready yet"}
+
     download_path = ROMS_FOLDER + download_id + "/"
+
     try:
         games = [f for f in os.listdir(download_path) if os.path.isfile(os.path.join(download_path, f))]
     except Exception:
-        return {"error": "Invalid download id"}
+        return {"error": "Could not download files. Download may have expired."}
     else:
         headers = {"Content-Type": "application/zip"}
 
