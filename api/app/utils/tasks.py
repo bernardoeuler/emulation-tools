@@ -22,10 +22,10 @@ def convert_to_chd(save_folder: str, download_folder: str, request_id: str, down
     subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder])
     subprocess.run(["rm", "-rf", save_folder])
 
-    download_files = [f.relative_to(download_folder).name for f in Path(download_folder).rglob("*") if f.is_file()]
+    download_items = [f.relative_to(download_folder).as_posix() for f in Path(download_folder).rglob("*")]
 
     zip_filename = Path(download_folder).name + ".zip"
-    subprocess.run(["zip", zip_filename, *download_files], cwd=download_folder)
+    subprocess.run(["zip", zip_filename, *download_items], cwd=download_folder)
 
     for item in Path(download_folder).iterdir():
         if item.name != zip_filename:
