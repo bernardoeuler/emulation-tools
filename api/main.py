@@ -78,7 +78,7 @@ async def download_file(download_id: str, file: str | None = None):
     except Exception:
         return {"error": "Invalid download id"}
     else:
-        headers = {"Content-Type": "application/octet-stream"}
+        headers = {"Content-Type": "application/zip"}
 
         if file:
             return FileResponse(download_path + file, filename=file, headers=headers)
