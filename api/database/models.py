@@ -8,19 +8,16 @@ from sqlalchemy import (
     ForeignKey,
     func,
 )
-from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
-
-Base = declarative_base()
+from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 
 
-class BaseModel(Base):
+class Base(DeclarativeBase):
     __abstract__ = True
-    __allow_unmapped__ = True
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
 
-class Download(BaseModel):
+class Download(Base):
     __tablename__ = "downloads"
     __table_args__ = (
         CheckConstraint(
@@ -40,7 +37,7 @@ class Download(BaseModel):
     request: Mapped["Request"] = relationship("Request", back_populates="downloads")
 
 
-class Request(BaseModel):
+class Request(Base):
     __tablename__ = "requests"
     __table_args__ = (
         CheckConstraint(
@@ -58,7 +55,7 @@ class Request(BaseModel):
     downloads: Mapped[List["Download"]] = relationship("Download", back_populates="request")
 
 
-class RequestType(BaseModel):
+class RequestType(Base):
     __tablename__ = "request_types"
 
     code: Mapped[str] = mapped_column(String, unique=True, nullable=False)
