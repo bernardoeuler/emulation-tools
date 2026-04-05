@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column('public_id', sa.String(length=32), nullable=False),
         sa.Column('request_id', sa.Integer(), nullable=False),
         sa.Column('status', sa.Enum('PENDING', 'READY', 'EXPIRED', 'FAILED', name='download_status_enum'), nullable=False),
-        sa.Column('file_uri', sa.String(), nullable=False),
+        sa.Column('file_uri', sa.String(), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),

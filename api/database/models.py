@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from enum import Enum
 from sqlalchemy import (
@@ -44,7 +44,7 @@ class Download(Base):
     public_id: Mapped[str] = mapped_column(String(32), nullable=False)
     request_id: Mapped[int] = mapped_column(Integer, ForeignKey("requests.id"), nullable=False)
     status: Mapped[DownloadStatusEnum] = mapped_column(SQLEnum(DownloadStatusEnum, name="download_status_enum"), nullable=False)
-    file_uri: Mapped[str] = mapped_column(String)
+    file_uri: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     request: Mapped["Request"] = relationship("Request", back_populates="downloads")
