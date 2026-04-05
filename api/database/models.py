@@ -28,10 +28,6 @@ class RequestStatusEnum(str, Enum):
 
 class RequestTypeEnum(str, Enum):
     ROM_CONVERSION = "rom_conversion"
-    AUDIO_CONVERSION = "audio_conversion"
-    VIDEO_CONVERSION = "video_conversion"
-    IMAGE_CONVERSION = "image_conversion"
-    ARCHIVE_EXTRACTION = "archive_extraction"
 
 
 class Base(DeclarativeBase):
