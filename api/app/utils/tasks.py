@@ -38,6 +38,7 @@ def convert_to_chd(save_folder: str, download_folder: str, request_id: str, down
 
     if download:
         download.status = DownloadStatusEnum.READY
+        download.file_uri = os.path.abspath(os.path.join(download_folder, zip_filename))
         print(download.id)
         session.commit()
         session.close()
