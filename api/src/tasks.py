@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from celery import Celery
 
-from api.config.database.setup import SessionLocal
+from api.config.database.session import SessionLocal
 from models.download import Download
 
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
