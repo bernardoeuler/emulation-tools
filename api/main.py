@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 
 from database.session import SessionLocal
 from database.models import Download, Request
-import utils.tasks as tasks
+import app.utils.tasks as tasks
 
 load_dotenv()
 

@@ -1,10 +1,10 @@
 FROM python:3.12-slim
 
+WORKDIR /api
+
 COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt
-
-WORKDIR /app
 
 EXPOSE 8000
 
