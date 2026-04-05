@@ -1,14 +1,37 @@
 from typing import List
 from datetime import datetime
+from enum import Enum
 from sqlalchemy import (
     Integer,
     String,
-    CheckConstraint,
     DateTime,
     ForeignKey,
+    Enum as SQLEnum,
     func,
 )
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
+
+
+class DownloadStatusEnum(str, Enum):
+    PENDING = "pending"
+    READY = "ready"
+    EXPIRED = "expired"
+    FAILED = "failed"
+
+
+class RequestStatusEnum(str, Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    DONE = "done"
+    FAILED = "failed"
+
+
+class RequestTypeEnum(str, Enum):
+    ROM_CONVERSION = "rom_conversion"
+    AUDIO_CONVERSION = "audio_conversion"
+    VIDEO_CONVERSION = "video_conversion"
+    IMAGE_CONVERSION = "image_conversion"
+    ARCHIVE_EXTRACTION = "archive_extraction"
 
 
 class Base(DeclarativeBase):
@@ -19,16 +42,10 @@ class Base(DeclarativeBase):
 
 class Download(Base):
     __tablename__ = "downloads"
-    __table_args__ = (
-        CheckConstraint(
-            "status IN ('pending','ready','expired','failed')",
-            name="download_status_check",
-        ),
-    )
 
     public_id: Mapped[str] = mapped_column(String(32), nullable=False)
     request_id: Mapped[int] = mapped_column(Integer, ForeignKey("requests.id"), nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[DownloadStatusEnum] = mapped_column(SQLEnum(DownloadStatusEnum, name="download_status_enum"), nullable=False)
     file_uri: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
@@ -39,26 +56,11 @@ class Download(Base):
 
 class Request(Base):
     __tablename__ = "requests"
-    __table_args__ = (
-        CheckConstraint(
-            "status IN ('pending','in_progress','done','failed')", name="status_check"
-        ),
-    )
 
     public_id: Mapped[str] = mapped_column(String(32), nullable=False)
-    type_id: Mapped[int] = mapped_column(Integer, ForeignKey("request_types.id"), nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False)
+    type: Mapped[RequestTypeEnum] = mapped_column(SQLEnum(RequestTypeEnum, name="request_type_enum"), nullable=False)
+    status: Mapped[RequestStatusEnum] = mapped_column(SQLEnum(RequestStatusEnum, name="request_status_enum"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
-    type: Mapped["RequestType"] = relationship("RequestType", back_populates="requests")
     downloads: Mapped[List["Download"]] = relationship("Download", back_populates="request")
-
-
-class RequestType(Base):
-    __tablename__ = "request_types"
-
-    code: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    description: Mapped[str] = mapped_column(String)
-
-    requests: Mapped[List["Request"]] = relationship("Request", back_populates="type")
