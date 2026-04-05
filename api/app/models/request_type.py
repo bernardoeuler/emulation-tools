@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
-from api.config.database.base_model import BaseModel
+from config.database.base_model import BaseModel
 
 
 class RequestType(BaseModel):

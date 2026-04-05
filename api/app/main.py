@@ -9,7 +9,7 @@ from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from api.config.database.session import SessionLocal
+from config.database.session import SessionLocal
 from models.download import Download
 from models.request import Request
 import src.tasks as tasks

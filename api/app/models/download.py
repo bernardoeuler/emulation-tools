@@ -9,22 +9,24 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from api.config.database.base_model import BaseModel
+from config.database.base_model import BaseModel
 
 
-class Request(BaseModel):
-    __tablename__ = "requests"
+class Download(BaseModel):
+    __tablename__ = "downloads"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('pending','in_progress','done','failed')", name="status_check"
+            "status IN ('pending','ready','expired','failed')",
+            name="download_status_check",
         ),
     )
 
     public_id = Column(String(32), nullable=False)
-    type_id = Column(Integer, ForeignKey("request_types.id"), nullable=False)
+    request_id = Column(Integer, ForeignKey("requests.id"), nullable=False)
     status = Column(String, nullable=False)
+    file_uri = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    expires_at = Column(DateTime(timezone=True))
 
-    type = relationship("RequestType", back_populates="requests")
-    downloads = relationship("Download", back_populates="request")
+    request = relationship("Request", back_populates="downloads")
