@@ -1,5 +1,6 @@
+from typing import List
+from datetime import datetime
 from sqlalchemy import (
-    Column,
     Integer,
     String,
     CheckConstraint,
@@ -7,7 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     func,
 )
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
 
 Base = declarative_base()
 
@@ -16,7 +17,7 @@ class BaseModel(Base):
     __abstract__ = True
     __allow_unmapped__ = True
 
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
 
 class Download(BaseModel):
@@ -28,15 +29,15 @@ class Download(BaseModel):
         ),
     )
 
-    public_id = Column(String(32), nullable=False)
-    request_id = Column(Integer, ForeignKey("requests.id"), nullable=False)
-    status = Column(String, nullable=False)
-    file_uri = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    expires_at = Column(DateTime(timezone=True))
+    public_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    request_id: Mapped[int] = mapped_column(Integer, ForeignKey("requests.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False)
+    file_uri: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
-    request = relationship("Request", back_populates="downloads")
+    request: Mapped["Request"] = relationship("Request", back_populates="downloads")
 
 
 class Request(BaseModel):
@@ -47,20 +48,20 @@ class Request(BaseModel):
         ),
     )
 
-    public_id = Column(String(32), nullable=False)
-    type_id = Column(Integer, ForeignKey("request_types.id"), nullable=False)
-    status = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    public_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    type_id: Mapped[int] = mapped_column(Integer, ForeignKey("request_types.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
-    type = relationship("RequestType", back_populates="requests")
-    downloads = relationship("Download", back_populates="request")
+    type: Mapped["RequestType"] = relationship("RequestType", back_populates="requests")
+    downloads: Mapped[List["Download"]] = relationship("Download", back_populates="request")
 
 
 class RequestType(BaseModel):
     __tablename__ = "request_types"
 
-    code = Column(String, unique=True, nullable=False)
-    description = Column(String)
+    code: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String)
 
-    requests = relationship("Request", back_populates="type")
+    requests: Mapped[List["Request"]] = relationship("Request", back_populates="type")
