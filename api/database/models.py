@@ -15,7 +15,6 @@ from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 class DownloadStatusEnum(str, Enum):
     PENDING = "pending"
     READY = "ready"
-    EXPIRED = "expired"
     FAILED = "failed"
 
 
