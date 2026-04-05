@@ -9,9 +9,10 @@ from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from database import SessionLocal
-from models import Download, Request
-import tasks
+from api.config.database.setup import SessionLocal
+from models.download import Download
+from models.request import Request
+import src.tasks as tasks
 
 load_dotenv()
 
