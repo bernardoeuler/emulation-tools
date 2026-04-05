@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from celery import Celery
 
 from database.session import SessionLocal
-from database.models import Download
+from database.models import Download, DownloadStatusEnum
 
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
 
@@ -14,7 +14,7 @@ app = Celery("tasks", broker="pyamqp://guest@localhost//")
 def convert_to_chd(save_folder: str, download_folder: str, request_id: str, download_id: str):
     session = SessionLocal()
 
-    session.add(Download(public_id=download_id, request_id=request_id, status="pending", created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
+    session.add(Download(public_id=download_id, request_id=request_id, status=DownloadStatusEnum.PENDING, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
     session.commit()
 
     os.makedirs(download_folder, exist_ok=True)
@@ -35,7 +35,7 @@ def convert_to_chd(save_folder: str, download_folder: str, request_id: str, down
     download = session.query(Download).filter_by(public_id=download_id).one_or_none()
 
     if download:
-        download.status = "ready"
+        download.status = DownloadStatusEnum.READY
         print(download.id)
         session.commit()
         session.close()

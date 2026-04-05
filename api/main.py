@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from database.session import SessionLocal
-from database.models import Download, Request
+from database.models import Download, Request, RequestStatusEnum, RequestTypeEnum
 import app.utils.tasks as tasks
 
 load_dotenv()
@@ -51,7 +51,7 @@ async def upload(file_uploads: list[UploadFile]):
 
     tasks.convert_to_chd.delay(save_folder, download_folder, request_id, download_id)
 
-    session.add(Request(public_id=request_id, type_id=1, status="pending", created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)))
+    session.add(Request(public_id=request_id, type=RequestTypeEnum.ROM_CONVERSION, status=RequestStatusEnum.PENDING, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)))
     session.commit()
     session.close()
 
