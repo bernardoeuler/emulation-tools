@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from config.database.session import SessionLocal
 from models.download import Download
 from models.request import Request
-import src.tasks as tasks
+import utils.tasks as tasks
 
 load_dotenv()
 
