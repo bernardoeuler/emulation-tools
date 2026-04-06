@@ -19,7 +19,6 @@ current_folder = Path(__file__).resolve().parent
 
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER") or current_folder.as_posix() + "/user-uploads/"
 DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or current_folder.as_posix() + "/user-downloads/"
-ROMS_FOLDER = DOWNLOAD_FOLDER + "roms/"
 
 app = FastAPI()
 session = SessionLocal()
@@ -35,12 +34,9 @@ app.add_middleware(
 @app.post("/upload/")
 async def upload(file_uploads: list[UploadFile]):
     request_id = uuid.uuid4().hex
-    download_id = uuid.uuid4().hex
     save_folder = UPLOAD_FOLDER + str(request_id) + "/"
-    download_folder = ROMS_FOLDER + download_id
 
     os.makedirs(save_folder, exist_ok=True)
-    os.makedirs(ROMS_FOLDER, exist_ok=True)
 
     for file_upload in file_uploads:
         if file_upload.filename:
@@ -54,7 +50,7 @@ async def upload(file_uploads: list[UploadFile]):
     session.commit()
     session.close()
 
-    tasks.convert_to_chd.delay(save_folder, download_folder, request_id, download_id)
+    tasks.convert_to_chd.delay(save_folder, request_id)
 
     return {"request_id": request_id}
 
@@ -79,7 +75,7 @@ async def download_file(download_id: str, file: str | None = None):
     if download is None or download.status != DownloadStatusEnum.READY:
         return {"error": "Download not ready yet"}
 
-    download_path = ROMS_FOLDER + download_id + "/"
+    download_path = DOWNLOAD_FOLDER + download.public_id + "/"
 
     try:
         games = [f for f in os.listdir(download_path) if os.path.isfile(os.path.join(download_path, f))]

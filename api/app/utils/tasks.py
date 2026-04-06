@@ -1,5 +1,6 @@
 import os
 import subprocess
+import uuid
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -8,10 +9,14 @@ from celery import Celery
 from database.session import SessionLocal
 from database.models import Download, Request, DownloadStatusEnum, RequestStatusEnum
 
+DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or "./user-downloads/"
+
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
 
 @app.task
-def convert_to_chd(save_folder: str, download_folder: str, request_id: str, download_id: str):
+def convert_to_chd(save_folder: str, request_id: str):
+    download_id = uuid.uuid4().hex
+    download_folder = DOWNLOAD_FOLDER + download_id
     session = SessionLocal()
 
     request = session.query(Request).filter_by(public_id=request_id).one_or_none()
@@ -28,9 +33,9 @@ def convert_to_chd(save_folder: str, download_folder: str, request_id: str, down
     try:
         session.commit()
 
-        os.makedirs(download_folder, exist_ok=True)
+        os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-        subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder], check=True)
+        subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder, "-q"], check=True)
         subprocess.run(["rm", "-rf", save_folder])
 
         download_items = [f.relative_to(download_folder).as_posix() for f in Path(download_folder).rglob("*")]
