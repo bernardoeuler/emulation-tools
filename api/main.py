@@ -49,11 +49,12 @@ async def upload(file_uploads: list[UploadFile]):
             with open(save_path, "wb") as save_file:
                 shutil.copyfileobj(file_upload.file, save_file)
 
-    tasks.convert_to_chd.delay(save_folder, download_folder, request_id, download_id)
-
     session.add(Request(public_id=request_id, type=RequestTypeEnum.ROM_CONVERSION, status=RequestStatusEnum.PENDING, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)))
+
     session.commit()
     session.close()
+
+    tasks.convert_to_chd.delay(save_folder, download_folder, request_id, download_id)
 
     return {"request_id": request_id}
 

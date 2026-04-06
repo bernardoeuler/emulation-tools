@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from celery import Celery
 
 from database.session import SessionLocal
-from database.models import Download, Request, DownloadStatusEnum
+from database.models import Download, Request, DownloadStatusEnum, RequestStatusEnum
 
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
 
@@ -15,36 +15,46 @@ def convert_to_chd(save_folder: str, download_folder: str, request_id: str, down
     session = SessionLocal()
 
     request = session.query(Request).filter_by(public_id=request_id).one_or_none()
-    
+
     if not request:
         session.close()
         return
 
-    session.add(Download(public_id=download_id, request_id=request.id, status=DownloadStatusEnum.PENDING, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc)))
-    session.commit()
+    download = Download(public_id=download_id, request_id=request.id, status=DownloadStatusEnum.PENDING, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc))
+    request.status = RequestStatusEnum.IN_PROGRESS
+    
+    session.add(download)
 
-    os.makedirs(download_folder, exist_ok=True)
+    try:
+        session.commit()
 
-    subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder])
-    subprocess.run(["rm", "-rf", save_folder])
+        os.makedirs(download_folder, exist_ok=True)
 
-    download_items = [f.relative_to(download_folder).as_posix() for f in Path(download_folder).rglob("*")]
+        subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder], check=True)
+        subprocess.run(["rm", "-rf", save_folder])
 
-    zip_filename = Path(download_folder).name + ".zip"
-    subprocess.run(["zip", zip_filename, *download_items], cwd=download_folder)
+        download_items = [f.relative_to(download_folder).as_posix() for f in Path(download_folder).rglob("*")]
+        zip_filename = Path(download_folder).name + ".zip"
 
-    for item in Path(download_folder).iterdir():
-        if item.name != zip_filename:
-            if item.is_dir():
-                subprocess.run(["rm", "-rf", str(item)])
-            else:
-                item.unlink()
+        subprocess.run(["zip", zip_filename, *download_items], cwd=download_folder, check=True)
 
-    download = session.query(Download).filter_by(public_id=download_id).one_or_none()
+        for item in Path(download_folder).iterdir():
+            if item.name != zip_filename:
+                if item.is_dir():
+                    subprocess.run(["rm", "-rf", str(item)])
+                else:
+                    item.unlink()
 
-    if download:
         download.status = DownloadStatusEnum.READY
         download.file_uri = os.path.abspath(os.path.join(download_folder, zip_filename))
-        print(download.id)
+
+        request.status = RequestStatusEnum.DONE
+
         session.commit()
+    except Exception:
+        download.status = DownloadStatusEnum.FAILED
+        request.status = RequestStatusEnum.FAILED
+
+        session.commit()
+    finally:
         session.close()

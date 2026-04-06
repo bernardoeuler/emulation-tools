@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 show_help() {
     program_name=$0
     echo "Usage: $program_name source_directory destination_directory"
