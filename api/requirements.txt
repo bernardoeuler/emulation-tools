@@ -1,6 +1,6 @@
 alembic
-fastapi[standard]
 celery
-sqlalchemy
-python-dotenv
+fastapi[standard]
 psycopg2-binary
+python-dotenv
+sqlalchemy
