@@ -91,9 +91,6 @@ async def download_file(download_id: str, file: str | None = None):
     if not files:
         return {"error": "No files available for download"}
 
-    if file:
-        filename = file
-    else:
-        filename = files[0]
+    filename = file or files[0]
 
     return FileResponse(download_path / filename, filename=filename, headers={"Content-Type": "application/zip"})
