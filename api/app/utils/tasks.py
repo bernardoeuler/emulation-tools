@@ -35,7 +35,7 @@ def convert_to_chd(save_folder: str, request_id: str):
 
         DOWNLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
-        subprocess.run(["./bin/create-chd-from-archives", save_folder, str(download_folder), "-q"], check=True)
+        subprocess.run(["./bin/create-chd-from-archives.sh", save_folder, str(download_folder), "-q"], check=True)
         subprocess.run(["rm", "-rf", save_folder])
 
         download_items = [f.relative_to(download_folder).as_posix() for f in Path(download_folder).rglob("*")]
