@@ -85,7 +85,7 @@ async def download_file(download_id: str, file: str | None = None):
 
     try:
         files = [f.name for f in download_path.iterdir() if f.is_file()]
-    except Exception:
+    except OSError:
         return {"error": "Could not access download files"}
 
     if not files:
