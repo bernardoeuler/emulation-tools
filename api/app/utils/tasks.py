@@ -9,14 +9,14 @@ from celery import Celery
 from database.session import SessionLocal
 from database.models import Download, Request, DownloadStatusEnum, RequestStatusEnum
 
-DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or "./user-downloads/"
+DOWNLOAD_FOLDER = Path(os.getenv("DOWNLOAD_FOLDER") or "./user-downloads")
 
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
 
 @app.task
 def convert_to_chd(save_folder: str, request_id: str):
     download_id = uuid.uuid4().hex
-    download_folder = DOWNLOAD_FOLDER + download_id
+    download_folder = DOWNLOAD_FOLDER / download_id
     session = SessionLocal()
 
     request = session.query(Request).filter_by(public_id=request_id).one_or_none()
@@ -33,15 +33,15 @@ def convert_to_chd(save_folder: str, request_id: str):
     try:
         session.commit()
 
-        os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+        DOWNLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
-        subprocess.run(["./bin/create-chd-from-archives", save_folder, download_folder, "-q"], check=True)
+        subprocess.run(["./bin/create-chd-from-archives", save_folder, str(download_folder), "-q"], check=True)
         subprocess.run(["rm", "-rf", save_folder])
 
         download_items = [f.relative_to(download_folder).as_posix() for f in Path(download_folder).rglob("*")]
-        zip_filename = Path(download_folder).name + ".zip"
+        zip_filename = f"{Path(download_folder).name}.zip"
 
-        subprocess.run(["zip", zip_filename, *download_items], cwd=download_folder, check=True)
+        subprocess.run(["zip", zip_filename, *download_items], cwd=str(download_folder), check=True)
 
         for item in Path(download_folder).iterdir():
             if item.name != zip_filename:
@@ -51,7 +51,7 @@ def convert_to_chd(save_folder: str, request_id: str):
                     item.unlink()
 
         download.status = DownloadStatusEnum.READY
-        download.file_uri = os.path.abspath(os.path.join(download_folder, zip_filename))
+        download.file_uri = (download_folder / zip_filename).resolve().as_uri()
 
         request.status = RequestStatusEnum.DONE
 

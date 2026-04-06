@@ -17,8 +17,8 @@ load_dotenv()
 
 current_folder = Path(__file__).resolve().parent
 
-UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER") or current_folder.as_posix() + "/user-uploads/"
-DOWNLOAD_FOLDER = os.getenv("DOWNLOAD_FOLDER") or current_folder.as_posix() + "/user-downloads/"
+UPLOAD_FOLDER = Path(os.getenv("UPLOAD_FOLDER") or current_folder / "user-uploads")
+DOWNLOAD_FOLDER = Path(os.getenv("DOWNLOAD_FOLDER") or current_folder / "user-downloads")
 
 app = FastAPI()
 session = SessionLocal()
@@ -34,13 +34,13 @@ app.add_middleware(
 @app.post("/upload/")
 async def upload(file_uploads: list[UploadFile]):
     request_id = uuid.uuid4().hex
-    save_folder = UPLOAD_FOLDER + str(request_id) + "/"
+    save_folder = UPLOAD_FOLDER / request_id
 
-    os.makedirs(save_folder, exist_ok=True)
+    save_folder.mkdir(parents=True, exist_ok=True)
 
     for file_upload in file_uploads:
         if file_upload.filename:
-            save_path = save_folder + file_upload.filename
+            save_path = save_folder / file_upload.filename
 
             with open(save_path, "wb") as save_file:
                 shutil.copyfileobj(file_upload.file, save_file)
@@ -50,7 +50,7 @@ async def upload(file_uploads: list[UploadFile]):
     session.commit()
     session.close()
 
-    tasks.convert_to_chd.delay(save_folder, request_id)
+    tasks.convert_to_chd.delay(str(save_folder), request_id)
 
     return {"request_id": request_id}
 
@@ -75,15 +75,15 @@ async def download_file(download_id: str, file: str | None = None):
     if download is None or download.status != DownloadStatusEnum.READY:
         return {"error": "Download not ready yet"}
 
-    download_path = DOWNLOAD_FOLDER + download.public_id + "/"
+    download_path = DOWNLOAD_FOLDER / download.public_id
 
     try:
-        games = [f for f in os.listdir(download_path) if os.path.isfile(os.path.join(download_path, f))]
+        games = [f for f in os.listdir(download_path) if (download_path / f).is_file()]
     except Exception:
         return {"error": "Could not download files. Download may have expired."}
     else:
         headers = {"Content-Type": "application/zip"}
 
         if file:
-            return FileResponse(download_path + file, filename=file, headers=headers)
-        return FileResponse(download_path + games[0], filename=games[0], headers=headers)
+            return FileResponse(download_path / file, filename=file, headers=headers)
+        return FileResponse(download_path / games[0], filename=games[0], headers=headers)
