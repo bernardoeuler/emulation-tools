@@ -61,10 +61,11 @@ async def upload(file_uploads: list[UploadFile]):
 @app.get("/status/{request_id}")
 async def get_download_id(request_id: str):
     request = session.query(Request).filter_by(public_id=request_id).one_or_none()
-    download = session.query(Download).filter_by(request_id=request_id).one_or_none()
 
     if request is None:
         return {"error": "Invalid request"}
+
+    download = session.query(Download).filter_by(request_id=request.id).one_or_none()
 
     if download is None:
         return {"error": "Download key not ready yet"}
