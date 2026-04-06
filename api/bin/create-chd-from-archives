@@ -32,10 +32,14 @@ if [[ ! -d $source_directory ]]; then
     exit 1
 fi
 
-if [[ -d $dest_directory && ! -z $quiet_argument ]]; then
+if [[ -d $dest_directory ]]; then
     echo "Destination directory alredy exists."
     echo "The directory can be used safely. All the files inside it will remains and games that alredy exist in the destination folder won't be added."
     echo ""
+
+    if [[ -n $quiet_argument ]]; then
+        exit 1
+    fi
 
     while true; do
         read -p "Do you want to use it to store the roms? [Y/N] " yn
@@ -51,9 +55,13 @@ else
     mkdir $dest_directory
 fi
 
-if [[ -d $temp_directory && ! -z $quiet_argument ]]; then
+if [[ -d $temp_directory ]]; then
     echo "Temporary directory alredy exists. If you want to use it, all the contents will be deleted."
     echo ""
+
+    if [[ -n $quiet_argument ]]; then
+        exit 1
+    fi
 
     while true; do
         read -p "Do you want to use it to store the files temporarily? [Y/N] " yn
