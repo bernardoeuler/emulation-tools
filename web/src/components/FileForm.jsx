@@ -8,7 +8,7 @@ export default function FileForm() {
     const [filesUploaded, setFilesUploaded] = useState(false)
     const [requestId, setRequestId] = useState("")
 
-    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
+    const API_BASE_URL = import.meta.env.WEB_API_BASE_URL
 
     const handleFileInputChange = (event) => {
         console.log(event.target.files)

@@ -4,7 +4,7 @@ export default function DownloadScreen({ requestId }) {
     const [isLoading, setIsLoading] = useState(true)
     const [downloadId, setDownloadId] = useState("")
 
-    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
+    const API_BASE_URL = import.meta.env.WEB_API_BASE_URL
 
     function pollData() {
         console.log("Polling...")
