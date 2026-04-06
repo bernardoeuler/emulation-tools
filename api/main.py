@@ -57,12 +57,12 @@ async def get_download_id(request_id: str):
     request = session.query(Request).filter_by(public_id=request_id).one_or_none()
 
     if request is None:
-        return {"error": "Invalid request"}
+        return {"error": "Request not found"}
 
     download = session.query(Download).filter_by(request_id=request.id).one_or_none()
 
     if download is None:
-        return {"error": "Download has not been started yet"}
+        return {"error": "Download not ready yet"}
 
     return {"download_id": download.public_id, "status": download.status}
 
@@ -71,17 +71,21 @@ async def download_file(download_id: str, file: str | None = None):
     download = session.query(Download).filter_by(public_id=download_id).one_or_none()
 
     if download is None or download.status != DownloadStatusEnum.READY:
-        return {"error": "Download not ready yet"}
+        return {"error": "Download not ready"}
 
     download_path = DOWNLOAD_FOLDER / download.public_id
 
     try:
-        games = [f for f in os.listdir(download_path) if (download_path / f).is_file()]
+        files = [f.name for f in download_path.iterdir() if f.is_file()]
     except Exception:
-        return {"error": "Could not download files. Download may have expired."}
-    else:
-        headers = {"Content-Type": "application/zip"}
+        return {"error": "Could not access download files"}
 
-        if file:
-            return FileResponse(download_path / file, filename=file, headers=headers)
-        return FileResponse(download_path / games[0], filename=games[0], headers=headers)
+    if not files:
+        return {"error": "No files available for download"}
+
+    if file:
+        filename = file
+    else:
+        filename = files[0]
+
+    return FileResponse(download_path / filename, filename=filename, headers={"Content-Type": "application/zip"})
