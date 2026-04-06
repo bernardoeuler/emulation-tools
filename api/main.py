@@ -68,7 +68,7 @@ async def get_download_id(request_id: str):
     download = session.query(Download).filter_by(request_id=request.id).one_or_none()
 
     if download is None:
-        return {"error": "Download key not ready yet"}
+        return {"error": "Download has not been started yet"}
 
     return {"download_id": download.public_id, "status": download.status}
 
