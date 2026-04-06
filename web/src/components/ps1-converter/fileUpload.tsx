@@ -3,7 +3,7 @@ import { useRef, useState } from "react"
 import { Upload } from "lucide-react"
 
 interface FileUploadProps {
-  onFileSelect: (file: File) => void
+  onFileSelect: (files: File[]) => void
   acceptedFormats?: string[]
 }
 
@@ -28,16 +28,16 @@ export function FileUpload({ onFileSelect, acceptedFormats = [".zip", ".chd", ".
     e.stopPropagation()
     setIsDragging(false)
 
-    const files = e.dataTransfer.files
+    const files = Array.from(e.dataTransfer.files)
     if (files.length > 0) {
-      onFileSelect(files[0])
+      onFileSelect(files)
     }
   }
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.currentTarget.files
     if (files && files.length > 0) {
-      onFileSelect(files[0])
+      onFileSelect(Array.from(files))
     }
   }
 
@@ -63,8 +63,9 @@ export function FileUpload({ onFileSelect, acceptedFormats = [".zip", ".chd", ".
           type="file"
           onChange={handleFileChange}
           accept={acceptedFormats.join(",")}
+          multiple
           className="hidden"
-          aria-label="Upload game file"
+          aria-label="Upload game files"
         />
 
         <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -81,3 +82,4 @@ export function FileUpload({ onFileSelect, acceptedFormats = [".zip", ".chd", ".
     </div>
   )
 }
+

@@ -10,24 +10,24 @@ import { getDownloadUrl } from "@/services/converter/getDownloadUrl"
 const SUPPORTED_FORMATS = ".zip, .chd, .cue + .bin and .iso"
 
 export function PS1Converter() {
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([])
   const [selectedFormat] = React.useState("chd")
   const { state, startConversion, reset } = useConversion()
 
   const isProcessing = state.step !== "idle"
-  const fileSize = selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) : 0
+  const totalFileSize = selectedFiles.reduce((sum, file) => sum + file.size, 0) / 1024 / 1024
 
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file)
+  const handleFileSelect = (files: File[]) => {
+    setSelectedFiles(files)
   }
 
   const handleConvert = async () => {
-    if (!selectedFile) return
-    await startConversion([selectedFile])
+    if (selectedFiles.length === 0) return
+    await startConversion(selectedFiles)
   }
 
   const handleDownload = (downloadId: string) => {
-    const filename = `ps1-game-${selectedFile?.name || "converted"}`
+    const filename = `ps1-game-${selectedFiles[0]?.name || "converted"}`
     const url = getDownloadUrl(downloadId)
     const link = document.createElement("a")
     link.href = url
@@ -39,7 +39,7 @@ export function PS1Converter() {
 
   const handleReset = () => {
     reset()
-    setSelectedFile(null)
+    setSelectedFiles([])
   }
 
   return (
@@ -68,14 +68,20 @@ export function PS1Converter() {
                 {!isProcessing && (
                   <div className="mb-8">
                     <FileUpload onFileSelect={handleFileSelect} />
-                    {selectedFile && (
-                      <p className="mt-3 text-sm text-muted-foreground">
-                        Selected:{" "}
-                        <span className="font-medium text-foreground">
-                          {selectedFile.name}
-                        </span>{" "}
-                        ({fileSize} MB)
-                      </p>
+                    {selectedFiles.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Selected: <span className="font-medium text-foreground">{selectedFiles.length} file{selectedFiles.length !== 1 ? "s" : ""}</span> ({totalFileSize.toFixed(2)} MB)
+                        </p>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          {selectedFiles.map((file, idx) => (
+                            <li key={idx} className="flex items-center gap-2">
+                              <span className="text-foreground font-medium">•</span>
+                              {file.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
                 )}
@@ -101,7 +107,7 @@ export function PS1Converter() {
 
                   <Button
                     onClick={handleConvert}
-                    disabled={!selectedFile}
+                    disabled={selectedFiles.length === 0}
                     size="lg"
                     className="w-full"
                   >
