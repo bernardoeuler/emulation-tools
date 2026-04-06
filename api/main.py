@@ -43,7 +43,15 @@ async def upload(file_uploads: list[UploadFile]):
             with open(save_path, "wb") as save_file:
                 shutil.copyfileobj(file_upload.file, save_file)
 
-    session.add(Request(public_id=request_id, type=RequestTypeEnum.ROM_CONVERSION, status=RequestStatusEnum.PENDING, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)))
+    now = datetime.now(timezone.utc)
+
+    session.add(Request(
+        public_id=request_id,
+        type=RequestTypeEnum.ROM_CONVERSION,
+        status=RequestStatusEnum.PENDING,
+        created_at=now,
+        updated_at=now
+    ))
 
     session.commit()
     session.close()
