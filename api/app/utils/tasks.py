@@ -2,7 +2,7 @@ import os
 import subprocess
 import uuid
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from celery import Celery
 
@@ -25,7 +25,7 @@ def convert_to_chd(save_folder: str, request_id: str):
         session.close()
         return
 
-    download = Download(public_id=download_id, request_id=request.id, status=DownloadStatusEnum.PENDING, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc))
+    download = Download(public_id=download_id, request_id=request.id, status=DownloadStatusEnum.PENDING, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc), expires_at=datetime.now(timezone.utc) + timedelta(hours=1))
     request.status = RequestStatusEnum.IN_PROGRESS
     
     session.add(download)
