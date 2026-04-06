@@ -3,8 +3,8 @@ import {
     NavigationMenuItem,
     NavigationMenuList,
     NavigationMenuLink
-} from "@/components/ui/navigation-menu"
-import { MobileMenu } from "@/components/mobile-menu"
+} from "@/components/ui/navigationMenu"
+import { MobileMenu } from "@/components/mobileMenu"
 
 export type NavigationBarOptions = {
     item: string,

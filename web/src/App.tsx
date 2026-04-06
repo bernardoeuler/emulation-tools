@@ -1,4 +1,4 @@
-import { NavigationBar } from "@/components/navigation-bar"
+import { NavigationBar } from "@/components/navigationBar"
 import { PS1Converter } from "@/components/ps1-converter"
 
 function App() {

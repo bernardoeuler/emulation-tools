@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api-client"
+import { apiClient } from "@/lib/apiClient"
 import type { StatusResponse } from "./types"
 
 export async function getConversionStatus(requestId: string): Promise<StatusResponse> {

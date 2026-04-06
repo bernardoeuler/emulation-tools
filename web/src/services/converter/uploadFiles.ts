@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api-client"
+import { apiClient } from "@/lib/apiClient"
 import type { UploadResponse } from "./types"
 
 export async function uploadFiles(files: File[]): Promise<string> {

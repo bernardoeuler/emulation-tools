@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 
-import type { NavigationBarOptions } from "@/components/navigation-bar"
+import type { NavigationBarOptions } from "@/components/navigationBar"
 
 export function MobileMenu({ className, menuOptions }: { className: string, menuOptions: NavigationBarOptions[] }) {
     return (
