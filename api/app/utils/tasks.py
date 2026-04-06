@@ -9,7 +9,7 @@ from celery import Celery
 from database.session import SessionLocal
 from database.models import Download, Request, DownloadStatusEnum, RequestStatusEnum
 
-DOWNLOAD_FOLDER = Path(os.getenv("DOWNLOAD_FOLDER") or "./user-downloads")
+DOWNLOAD_FOLDER = Path(os.getenv("DOWNLOAD_FOLDER", "downloads"))
 
 app = Celery("tasks", broker="pyamqp://guest@localhost//")
 

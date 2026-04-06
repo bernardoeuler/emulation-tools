@@ -15,10 +15,8 @@ import app.utils.tasks as tasks
 
 load_dotenv()
 
-current_folder = Path(__file__).resolve().parent
-
-UPLOAD_FOLDER = Path(os.getenv("UPLOAD_FOLDER") or current_folder / "user-uploads")
-DOWNLOAD_FOLDER = Path(os.getenv("DOWNLOAD_FOLDER") or current_folder / "user-downloads")
+UPLOAD_FOLDER = Path(os.getenv("UPLOAD_FOLDER", "uploads"))
+DOWNLOAD_FOLDER = Path(os.getenv("DOWNLOAD_FOLDER", "downloads"))
 
 app = FastAPI()
 session = SessionLocal()
