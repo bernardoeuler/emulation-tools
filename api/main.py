@@ -53,7 +53,7 @@ async def upload(file_uploads: list[UploadFile]):
     return {"request_id": request_id}
 
 @app.get("/status/{request_id}")
-async def get_download_id(request_id: str):
+async def get_status(request_id: str):
     request = session.query(Request).filter_by(public_id=request_id).one_or_none()
 
     if request is None:
