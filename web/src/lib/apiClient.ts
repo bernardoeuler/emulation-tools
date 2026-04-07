@@ -4,7 +4,9 @@ interface RequestOptions extends RequestInit {
   params?: Record<string, string>
 }
 
-const API_BASE_URL = import.meta.env.WEB_API_URL || "http://localhost:8000"
+const API_BASE_URL = import.meta.env.WEB_API_BASE_URL || "http://localhost:8000"
+
+console.log("API Base URL:", API_BASE_URL)
 
 export class APIClient {
   private baseUrl: string
