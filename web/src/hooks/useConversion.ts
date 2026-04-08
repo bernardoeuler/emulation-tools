@@ -32,7 +32,7 @@ const PROGRESS = {
 } as const
 
 export function useConversion(options: UseConversionOptions = {}) {
-  const { pollInterval = 2000, maxRetries = 60 } = options
+  const { pollInterval = 10000, maxRetries = 60 } = options
 
   const [state, setState] = useState<ConversionState>(INITIAL_STATE)
   const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
